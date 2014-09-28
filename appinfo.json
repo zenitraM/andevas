@@ -1,0 +1,22 @@
+{
+  "uuid": "5b985000-474d-11e4-916c-0800200c9a66",
+  "shortName": "andevas",
+  "longName": "andevas",
+  "companyName": "@iamzenitraM",
+  "versionCode": 1,
+  "versionLabel": "1.0",
+  "capabilities": [ "location" ],
+  "watchapp": {
+    "watchface": true
+  },
+  "appKeys": {"distance": 0, "bearing": 1, "accuracy": 2},
+  "resources": {
+    "media": [
+      {
+        "type": "png",
+        "name": "COMPASS_BACKGROUND",
+        "file": "images/compass_background.png"
+      }
+    ]
+  }
+}
