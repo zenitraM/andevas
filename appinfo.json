@@ -7,9 +7,9 @@
   "versionLabel": "1.0",
   "capabilities": [ "location" ],
   "watchapp": {
-    "watchface": true
+    "watchface": false
   },
-  "appKeys": {"distance": 0, "bearing": 1, "accuracy": 2},
+  "appKeys": {"distance": 0, "bearing": 1, "accuracy": 2, "name": 3},
   "resources": {
     "media": [
       {

@@ -17,6 +17,7 @@ static struct CompassUI {
   Layer *path_layer;
   TextLayer *text_layer;
   TextLayer *text_layer_calib_state;
+  TextLayer *text_layer_name;
   GPath *needle_north, *needle_south;
 } s_ui;
 
@@ -28,7 +29,7 @@ static struct TargetDest {
 } target_dest;
 
 static AppSync sync;
-static uint8_t sync_buffer[64];
+static uint8_t sync_buffer[128];
 // Vector paths for the compass needles
 static const GPathInfo NEEDLE_NORTH_POINTS = { 3,
   (GPoint []) { { -8, 0 }, { 8, 0 }, { 0, -36 } }
@@ -104,8 +105,17 @@ static void window_load(Window *window) {
   text_layer_set_text_alignment(s_ui.text_layer_calib_state, GTextAlignmentRight);
   text_layer_set_background_color(s_ui.text_layer_calib_state, GColorClear);
 
+  s_ui.text_layer_name = text_layer_create( (GRect){
+      .origin = {.x = 0, .y = bounds.size.h-15},
+      .size = {.w = bounds.size.w, .h = bounds.size.h/7}
+      });
+
+  text_layer_set_text_alignment(s_ui.text_layer_name, GTextAlignmentCenter);
+  text_layer_set_background_color(s_ui.text_layer_name, GColorClear);
+
   layer_add_child(window_layer, text_layer_get_layer(s_ui.text_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_ui.text_layer_calib_state));
+  layer_add_child(window_layer, text_layer_get_layer(s_ui.text_layer_name));
   // Create the bitmap for the background and put it on the screen
   s_ui.bitmap_layer = bitmap_layer_create(bounds);
   s_ui.background = gbitmap_create_with_resource(RESOURCE_ID_COMPASS_BACKGROUND);
@@ -158,6 +168,10 @@ void sync_tuple_changed_callback(const uint32_t key,
       target_dest.accuracy = new_tuple->value->uint32;
       APP_LOG(APP_LOG_LEVEL_DEBUG, "accuracy: %ld", target_dest.accuracy);
       break;
+    case 3:
+      text_layer_set_text(s_ui.text_layer_name, new_tuple->value->cstring);
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "name: %s", new_tuple->value->cstring);
+      break;
   }
 }
 
@@ -165,20 +179,21 @@ static void sync_error_callback(DictionaryResult dict_error, AppMessageResult ap
   APP_LOG(APP_LOG_LEVEL_DEBUG, "App Message Sync Error: %d", app_message_error);
 }
 static void init(void) {
-  const int inbound_size = 64;
-  const int outbound_size = 64;
+  const int inbound_size = 128;
+  const int outbound_size = 128;
   app_message_open(inbound_size, outbound_size);
 
   Tuplet initial_values[] = {
     TupletInteger(0, (uint32_t) 0),
     TupletInteger(1, (uint32_t) 0),
-    TupletInteger(2, (uint32_t) 0)
+    TupletInteger(2, (uint32_t) 0),
+    TupletCString(3, "Loading..")
   };
   app_sync_init(&sync, sync_buffer, sizeof(sync_buffer),
       initial_values, ARRAY_LENGTH(initial_values),
       sync_tuple_changed_callback, sync_error_callback, NULL);
   // initialize compass and set a filter to 2 degrees
-  compass_service_set_heading_filter(2 * (TRIG_MAX_ANGLE/360));
+  compass_service_set_heading_filter((TRIG_MAX_ANGLE/360));
   compass_service_subscribe(&compass_heading_handler);
 
   // initialize base window
@@ -187,7 +202,7 @@ static void init(void) {
       .load = window_load,
       .unload = window_unload,
       });
-
+  window_set_fullscreen(s_ui.window, true);
   window_stack_push(s_ui.window, true);
 }
 

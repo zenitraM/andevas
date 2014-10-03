@@ -34,12 +34,32 @@ function getDistance(lat1, lon1, lat2, lon2) {
 }
 function logPosition(position) {
   lat1 = position.coords.latitude; lon1 = position.coords.longitude;
-  lat2 = getToLat; lon2 = getToLon;
-  bearing_ang = getBearing(lat1,lon1,lat2,lon2);
-  distance = getDistance(lat1,lon1,lat2,lon2);
-  Pebble.sendAppMessage({bearing: bearing_ang*1000, distance: distance*1000, accuracy: position.coords.accuracy })
+  fetchLocations(lat1,lon1, function(lat2,lon2, name) {
+    bearing_ang = getBearing(lat1,lon1,lat2,lon2);
+    distance = getDistance(lat1,lon1,lat2,lon2);
+    Pebble.sendAppMessage({bearing: bearing_ang*1000, distance: distance*1000, accuracy: position.coords.accuracy, name: name })
+  })
 }
 
+function fetchLocations(latitude, longitude, callback) {
+  var response;
+  var req = new XMLHttpRequest();
+  req.open('GET', "http://zenitram.cartodb.com/api/v2/sql?q=select+st_x(the_geom)+as+x,st_y(the_geom)+as+y,+nombre+as+name+from+bicimad_1+order+by+the_geom<->st_setsrid(st_makepoint(" +
+    longitude + "," + latitude + "),4326)+asc+limit+1", true);
+  req.onload = function(e) {
+    if (req.readyState == 4) {
+      if(req.status == 200) {
+        console.log(req.responseText);
+        response = JSON.parse(req.responseText);
+        coords = response["rows"][0];
+        callback(coords['y'], coords['x'], coords['name']);
+      } else {
+        console.log("Error");
+      }
+    }
+  }
+  req.send(null);
+}
 Pebble.addEventListener("ready",
   function(e) {
     navigator.geolocation.watchPosition(logPosition, null, {enableHighAccuracy: true});
