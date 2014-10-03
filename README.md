@@ -19,5 +19,5 @@ However, it will now fetch the location of the nearest [BiciMad](http://bicimad.
 - Be smarter about location-fetching (right now it just subscribes to HTML5 getLocation with high precision, which at least on Android uses GPS always). Maybe activating high precision only when distance < 500m or reducing lifecycles.
 - Be smarter when querying the SQL API.
 - Be able to configure the table to fetch info from.
-- ~~Make it fetch places from [some sort of cloud geospatial database](http://cartodb.com/).~
+- ~~Make it fetch places from [some sort of cloud geospatial database](http://cartodb.com/).~~
 - ~~Maybe, make it a watchapp instead of a watchface.~~
